@@ -234,10 +234,19 @@ const deleteBlog = async (req, res) => {
 
 const updateBlog = async (req, res) => {
   const { id } = req.params;
-  const { content, title, url, tags, categoryId } = req.body;
-
+  const { content, title, url, tags, categoryId , metaDescription, metaTitle, } = req.body;
+  console.log("in update api", req.body,id, content, title, url, tags, categoryId, metaDescription, metaTitle);
   try {
-    await Blog.findByIdAndUpdate(id, { title, content, url, tags, category: categoryId || null }, { new: true });
+    const existingBlog = await Blog.findById(id);
+    if (!existingBlog) {
+      return res.status(404).json({
+        success: false,
+        msg: "Blog not found"
+      });
+    }
+    await Blog.findByIdAndUpdate(id, { 
+      title : title || existingBlog.title, 
+      content, url, tags, category: categoryId, metaDescription, metaTitle }, { new: true });
     res.status(200).json({ success: true, msg: "Blog updated" });
   } catch (err) {
     res.status(500).json({ success: false, msg: "Error updating blog" });
