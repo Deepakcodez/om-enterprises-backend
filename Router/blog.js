@@ -10,7 +10,7 @@ const {
   ImgToUrl,
   getBlogsInLimit,
   createBlogCategory,
-  getBlogCategory,
+  getBlogCategory
 } = require("../Controller/blog.js");
 const {
   authorizedRole,
@@ -21,8 +21,6 @@ const uploadFromUrl = require("../middleware/multer.js");
 
 const router = Router();
 const upload = multer({ dest: "uploads/" });
-
-
 
 router.post(
   "/create",
@@ -40,7 +38,7 @@ router.post(
   uploadFromUrl,
   ImgToUrl
 );
-router.get( "/categories",  getBlogCategory);
+router.get("/categories", getBlogCategory);
 router.get("/all", getBlogs);
 router.get("/withpagination", getBlogsInLimit);
 router.get("/:id", getBlogById);
@@ -56,6 +54,8 @@ router.put(
   "/edit/:id",
   // isAuthenticate,
   // authorizedRole("admin", "blogger"),
+  upload.single("image"),
+  uploadFromUrl,
   updateBlog
 );
 router.post(
@@ -64,6 +64,5 @@ router.post(
   // authorizedRole("admin", "blogger"),
   createBlogCategory
 );
-
 
 module.exports = router;

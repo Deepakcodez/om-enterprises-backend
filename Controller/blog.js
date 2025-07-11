@@ -234,8 +234,7 @@ const deleteBlog = async (req, res) => {
 
 const updateBlog = async (req, res) => {
   const { id } = req.params;
-  const { content, title, url, tags, categoryId , metaDescription, metaTitle, } = req.body;
-  console.log("in update api", req.body,id, content, title, url, tags, categoryId, metaDescription, metaTitle);
+  console.log("Updating blog with ID:", req.body);
   try {
     const existingBlog = await Blog.findById(id);
     if (!existingBlog) {
@@ -244,11 +243,35 @@ const updateBlog = async (req, res) => {
         msg: "Blog not found"
       });
     }
-    await Blog.findByIdAndUpdate(id, { 
-      title : title || existingBlog.title, 
-      content, url, tags, category: categoryId, metaDescription, metaTitle }, { new: true });
+
+    // Handle form data
+    const updateData = {
+      title: req.body.title || existingBlog.title,
+      content: req.body.content || existingBlog.content,
+      url: req.body.url || existingBlog.url,
+      category: req.body.categoryId || existingBlog.category,
+      metaDescription: req.body.metaDescription || existingBlog.metaDescription,
+      metaTitle: req.body.title || existingBlog.metaTitle,
+    };
+
+    // Handle tags (parse from JSON string if needed)
+    if (req.body.tags) {
+      updateData.tags = typeof req.body.tags === 'string' 
+        ? JSON.parse(req.body.tags) 
+        : req.body.tags;
+    } else {
+      updateData.tags = existingBlog.tags;
+    }
+
+    // Handle image upload if present
+    if (req.file) {
+      updateData.image = req.imageUrl || existingBlog.image;
+    }  
+
+    await Blog.findByIdAndUpdate(id, updateData, { new: true });
     res.status(200).json({ success: true, msg: "Blog updated" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, msg: "Error updating blog" });
   }
 };
