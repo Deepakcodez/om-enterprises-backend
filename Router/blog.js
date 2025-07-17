@@ -10,7 +10,8 @@ const {
   ImgToUrl,
   getBlogsInLimit,
   createBlogCategory,
-  getBlogCategory
+  getBlogCategory,
+  addBlogUrls
 } = require("../Controller/blog.js");
 const {
   authorizedRole,
@@ -44,6 +45,7 @@ router.get("/withpagination", getBlogsInLimit);
 router.get("/:id", getBlogById);
 router.get("/url/:url", getBlogByUrl);
 router.get("/title/:title", getBlogByTitle);
+router.post("/update-url", addBlogUrls);
 router.delete(
   "/delete/:id",
   isAuthenticate,

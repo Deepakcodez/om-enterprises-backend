@@ -18,6 +18,10 @@ const jobApplySchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    fromJalandhar: {
+      type: Boolean,
+      default: false,
+    },
     isFresher: {
       type: Boolean,
       default: true,

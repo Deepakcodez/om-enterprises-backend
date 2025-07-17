@@ -173,7 +173,6 @@ const getBlogByTitle = async (req, res) => {
 
 const getBlogByUrl = async (req, res) => {
   const { url } = req.params;
-  console.log(url);
 
   if (!url) {
     return res.status(404).json({
@@ -182,7 +181,7 @@ const getBlogByUrl = async (req, res) => {
     });
   }
   try {
-    const blog = await Blog.findOne({ url });
+    const blog = await Blog.findOne({ url }).populate("category");
     if (!blog) {
       return res.status(404).json({
         success: false,
@@ -349,6 +348,65 @@ const getBlogCategory = async (req, res) => {
   }
 };
 
+
+const addBlogUrls = async (req, res) => {
+  try {
+    console.log("Adding URLs to blogs without them...");
+    // 1. Find all blogs that either don't have a URL field or have an empty URL
+    const blogs = await Blog.find({
+      $or: [
+        { url: { $exists: false } },
+        { url: null },
+        { url: "" }
+      ]
+    });
+
+    // 2. Process each blog to add the URL
+    const updateOperations = blogs.map(blog => {
+      if (!blog.title) {
+        console.warn(`Blog ${blog._id} has no title, skipping`);
+        return null;
+      }
+
+      // Create URL-friendly slug from title
+      const slug = blog.title
+        .toLowerCase() // Convert to lowercase
+        .replace(/\s+/g, '-') // Replace spaces with -
+        .replace(/[^\w\-]+/g, '') // Remove all non-word chars except -
+        .replace(/\-\-+/g, '-') // Replace multiple - with single -
+        .replace(/^-+/, '') // Trim - from start of text
+        .replace(/-+$/, ''); // Trim - from end of text
+
+      return {
+        updateOne: {
+          filter: { _id: blog._id },
+          update: { $set: { url: slug } }
+        }
+      };
+    }).filter(op => op !== null); // Filter out any null operations
+
+    // 3. Bulk update only if there are operations to perform
+    let result = { modifiedCount: 0 };
+    if (updateOperations.length > 0) {
+      result = await Blog.bulkWrite(updateOperations);
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Blog URLs updated successfully",
+      blogsWithoutUrlCount: blogs.length,
+      updatedCount: result.modifiedCount,
+      skippedCount: blogs.length - result.modifiedCount
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Server Error",
+      error: error.message
+    });
+  }
+}
 module.exports = {
   createBlog,
   getBlogs,
@@ -360,5 +418,6 @@ module.exports = {
   ImgToUrl,
   getBlogsInLimit,
   createBlogCategory,
-  getBlogCategory
+  getBlogCategory,
+  addBlogUrls
 };

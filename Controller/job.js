@@ -214,7 +214,7 @@ const deleteJob = async (req, res) => {
 const applyJob = async (req, res) => {
 
   try {
-    const { jobId, name, email, phone,isFresher, availability } = req.body;
+    const { jobId, name, email, phone,isFresher, availability, fromJalandhar } = req.body;
     const resume = req.imageUrl;
     console.log(req.body, resume)
     const job = await JobForm.findOne({ _id: jobId });
@@ -233,6 +233,7 @@ const applyJob = async (req, res) => {
         resume,
         isFresher,
         availability,
+        fromJalandhar
       })
       console.log(newJobApply)
       return res.status(200).json({ message: " job applied", newJobApply });
